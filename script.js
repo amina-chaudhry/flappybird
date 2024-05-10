@@ -1,5 +1,14 @@
 //variabler 
 
+let gameStarted = false;
+
+// Funksjon for å starte spillet
+function startGame() {
+    gameStarted = true;
+}
+
+// Endre update() funksjonen
+
 //lyd
 let gameOverSound = new Audio("audio/gameover.mp3");
 let scoreSound = new Audio("audio/poeng.mp3");
