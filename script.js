@@ -1,3 +1,5 @@
+//variabler 
+
 //lyd
 let gameOverSound = new Audio("audio/gameover.mp3");
 let scoreSound = new Audio("audio/poeng.mp3");
@@ -9,8 +11,8 @@ let boardHeight = 640;
 let context;
 
 // Fugl
-let birdWidth = 34; // bredde/høyde-forhold = 408/228 = 17/12
-let birdHeight = 24;
+let birdWidth = 54; // bredde/høyde-forhold = 408/228 = 17/12
+let birdHeight = 44;
 let birdX = boardWidth / 8;
 let birdY = boardHeight / 2;
 let birdImg;
@@ -21,6 +23,24 @@ let bird = {
     width: birdWidth,
     height: birdHeight
 }
+
+let birdWingUpImg = new Image();
+birdWingUpImg.src = "bilder/bird-wing-up.png";
+
+let birdWingDownImg = new Image();
+birdWingDownImg.src = "bilder/bird-wing-down.png";
+
+// Legg til event-lytter for å bytte bilde av fuglens vinger når brukeren trykker på tastene Space, ArrowUp eller KeyX
+document.addEventListener("keydown", function(e) {
+    if (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX") {
+        // Bytt bilde av fuglens vinger
+        birdImg.src = "bilder/bird-wing-up.png";
+        // Sett en timeout for å gå tilbake  ned
+        setTimeout(function() {
+            birdImg.src = "bilder/bird-wing-down.png";
+        }, 200); // tidsperiode i millisekunder
+    }
+});
 
 // Rør
 let pipeArray = [];
@@ -67,7 +87,7 @@ window.onload = function () {
     // Teger flappy bird
     // Laster inn bilder
     birdImg = new Image();
-    birdImg.src = "bilder/bird.png";
+    birdImg.src = "bilder/bird-wing-down.png";
     birdImg.onload = function () {
         context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
     }
