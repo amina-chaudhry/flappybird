@@ -226,3 +226,62 @@ function detectCollision(a, b) {
         a.y < b.y + b.height &&  // sjekker om a sitt øvre venstre hjørne er over b sitt nedre venstre hjørne.
         a.y + a.height > b.y;    // sjekker om a sitt nedre venstre hjørne er under b sitt øvre venstre hjørne.
 }
+
+// FØRSØK PÅ Highscore  ----------------------------------------
+const URL = "https://rasmusweb.no/hs.php";
+const GameID = "flappybird568"; 
+let highscore = 0;
+let playerName = "";
+
+// Funksjon for å lagre highscore på serveren
+async function saveHighscore(score) {
+    let playerNameInput = prompt("Gratulerer! Du har satt en highscore!\nSkriv inn navnet ditt:");
+
+    playerName = playerNameInput.trim() !== "" ? playerNameInput : "Anonym";
+
+    const data = {
+        id: GameID,
+        hs: score,
+        player: playerName,
+    };
+
+    try {
+        const response = await fetch(URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            throw new Error("Det oppsto en feil ved lagring av highscore.");
+        }
+
+        const responseData = await response.json();
+        console.log(responseData);
+    } catch (error) {
+        console.error("Feil ved lagring av highscore:", error.message);
+    }
+}
+
+// Funksjon for å oppdatere highscore når spillet er vunnet
+async function updateHighscore(score) {
+    if (!highscore || score > highscore) {
+        await saveHighscore(score);
+        highscore = score; // Oppdaterer den lokale highscore-variabelen
+        console.log("Highscore oppdatert til:", highscore);
+        displayHighscore(); // Kaller funksjonen for å vise highscore etter oppdatering
+    }
+    // Nytt kall for å vise highscore umiddelbart ved oppdatering
+    displayHighscore();
+}
+
+// Funksjon for å vise highscore på nettsiden
+function displayHighscore() {
+    const highscoreElement = document.getElementById("highscore");
+    if (highscoreElement) {
+        highscoreElement.textContent = `Highscore: ${highscore}`;
+    }
+    console.log("displayHighscore() ble kalt");
+}
