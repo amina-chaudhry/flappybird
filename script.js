@@ -1,13 +1,11 @@
 //variabler 
-
 let gameStarted = false;
 
 // Funksjon for å starte spillet
 function startGame() {
     gameStarted = true;
+    document.getElementById("instructions").style.display = "none"; //fjerner instruksjonsboks 
 }
-
-// Endre update() funksjonen
 
 //lyd
 let gameOverSound = new Audio("audio/gameover.mp3");
@@ -19,9 +17,53 @@ let boardWidth = 360;
 let boardHeight = 640;
 let context;
 
+// Rør
+let pipeArray = [];
+let pipeWidth = 64; // bredde/høyde-forhold = 384/3072 = 1/8
+let pipeHeight = 512;
+let pipeX = boardWidth;
+let pipeGap = 200; // Avstand mellom øvre og nedre rør
+
+// Endre poengtellingen til hele poeng
+let score = 0;
+
+// Spill av poeng-lyden hver gang spilleren scorer
+function playScoreSound() {
+    scoreSound.play();
+    score++; // øk poeng med 1 for hvert passert rørpar
+}
+
+function placePipes() {
+    if (!gameStarted || gameOver) {
+        return;
+    }
+
+    let randomPipeY = Math.random() * (boardHeight - pipeGap); // Tilfeldig plassering for øvre rør
+
+    let topPipe = {
+        img: topPipeImg,
+        x: pipeX,
+        y: randomPipeY - pipeHeight, // Juster for høyden på det øvre røret
+        width: pipeWidth,
+        height: pipeHeight,
+        passed: false
+    }
+    pipeArray.push(topPipe);
+
+    let bottomPipe = {
+        img: bottomPipeImg,
+        x: pipeX,
+        y: randomPipeY + pipeGap, // Juster for gapet
+        width: pipeWidth,
+        height: pipeHeight,
+        passed: false
+    }
+    pipeArray.push(bottomPipe);
+}
+
 // Fugl
-let birdWidth = 54; // bredde/høyde-forhold = 408/228 = 17/12
-let birdHeight = 44;
+let birdWidth = 44; // bredde/høyde-forhold = 408/228 = 17/12
+let birdHeight = 34;
 let birdX = boardWidth / 8;
 let birdY = boardHeight / 2;
 let birdImg;
@@ -41,7 +83,9 @@ birdWingDownImg.src = "bilder/bird-wing-down.png";
 
 // Legg til event-lytter for å bytte bilde av fuglens vinger når brukeren trykker på tastene Space, ArrowUp eller KeyX
 document.addEventListener("keydown", function(e) {
-    if (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX") {
+    if (!gameStarted && (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX")) {
+        startGame();
+    } else if (gameStarted && (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX")) {
         // Bytt bilde av fuglens vinger
         birdImg.src = "bilder/bird-wing-up.png";
         // Sett en timeout for å gå tilbake  ned
@@ -51,13 +95,7 @@ document.addEventListener("keydown", function(e) {
     }
 });
 
-// Rør
-let pipeArray = [];
-let pipeWidth = 64; // bredde/høyde-forhold = 384/3072 = 1/8
-let pipeHeight = 512;
-let pipeX = boardWidth;
-let pipeY = 0;
-
+// Rør variabler
 let topPipeImg;
 let bottomPipeImg;
 
@@ -65,9 +103,9 @@ let bottomPipeImg;
 let velocityX = -2; // hastighet for rør som beveger seg til venstre
 let velocityY = 0; // hastighet for fuglens hopp
 let gravity = 0.4;
+let jumpVelocity = -6; // Hoppets hastighet
 
 let gameOver = false;
-let score = 0;
 
 // Spill av gameover-lyden når spillet er over
 function playGameOverSound() {
@@ -114,14 +152,13 @@ window.onload = function () {
 
 function update() {
     requestAnimationFrame(update);
-    if (gameOver) {
+    if (!gameStarted || gameOver) {
         return;
     }
     context.clearRect(0, 0, board.width, board.height);
 
     // Fugl
     velocityY += gravity;
-    // bird.y += velocityY;
     bird.y = Math.max(bird.y + velocityY, 0); // Påfør tyngdekraft på gjeldende bird.y, begrens bird.y til toppen av brettet
     context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
 
@@ -130,25 +167,30 @@ function update() {
     }
 
     // Rør
-    for (let i = 0; i < pipeArray.length; i++) {
-        let pipe = pipeArray[i];
-        pipe.x += velocityX;
-        context.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height);
+    for (let i = 0; i < pipeArray.length; i += 2) { // Øvre og nedre rør
+        let topPipe = pipeArray[i];
+        let bottomPipe = pipeArray[i + 1];
 
-        if (!pipe.passed && bird.x > pipe.x + pipe.width) {
-            score += 0.5; // 0.5 fordi det er 2 rør! så 0.5*2 = 1, 1 for hvert sett med rør
-            pipe.passed = true;
-             playScoreSound();
+        topPipe.x += velocityX;
+        bottomPipe.x += velocityX;
+
+        context.drawImage(topPipe.img, topPipe.x, topPipe.y, topPipe.width, topPipe.height);
+        context.drawImage(bottomPipe.img, bottomPipe.x, bottomPipe.y, bottomPipe.width, bottomPipe.height);
+
+        if (!topPipe.passed && bird.x > topPipe.x + topPipe.width) {
+            score += 1; // endre poengtelling til hele poeng
+            topPipe.passed = true;
+            playScoreSound();
         }
 
-        if (detectCollision(bird, pipe)) {
+        if (detectCollision(bird, topPipe) || detectCollision(bird, bottomPipe)) {
             gameOver = true;
         }
     }
 
     // Fjerner rør når de er passert
     while (pipeArray.length > 0 && pipeArray[0].x < -pipeWidth) {
-        pipeArray.shift(); // Fjerner første element fra arrayen
+        pipeArray.splice(0, 2); // Fjerner både øvre og nedre rør
     }
 
     // Poeng
@@ -158,47 +200,14 @@ function update() {
 
     if (gameOver) {
         playGameOverSound(); // Spill av gameover-lyden
-        context.fillText("GAME OVER", boardWidth/8, boardHeight/2);
+        context.fillText("GAME OVER", boardWidth / 8, boardHeight / 2);
     }
-}
-
-function placePipes() {
-    if (gameOver) {
-        return;
-    }
-
-    // (0-1) * pipeHeight/2.
-    // 0 -> -128 (pipeHeight/4)
-    // 1 -> -128 - 256 (pipeHeight/4 - pipeHeight/2) = -3/4 pipeHeight
-    let randomPipeY = pipeY - pipeHeight / 4 - Math.random() * (pipeHeight / 2);
-    let openingSpace = board.height / 4;
-
-    let topPipe = {
-        img: topPipeImg,
-        x: pipeX,
-        y: randomPipeY,
-        width: pipeWidth,
-        height: pipeHeight,
-        passed: false
-    }
-    pipeArray.push(topPipe);
-
-    let bottomPipe = {
-        img: bottomPipeImg,
-        x: pipeX,
-        y: randomPipeY + pipeHeight + openingSpace,
-        width: pipeWidth,
-        height: pipeHeight,
-        passed: false
-    }
-    pipeArray.push(bottomPipe);
-    
 }
 
 function moveBird(e) {
-    if (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX") {
+    if (gameStarted && (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX")) {
         // Hopp
-        velocityY = -6;
+        velocityY = jumpVelocity;
 
         // Nullstill spillet
         if (gameOver) {
@@ -216,4 +225,4 @@ function detectCollision(a, b) {
         a.x + a.width > b.x &&   // sjekker om a sitt øvre høyre hjørne er til høyre for b sitt øvre venstre hjørne
         a.y < b.y + b.height &&  // sjekker om a sitt øvre venstre hjørne er over b sitt nedre venstre hjørne.
         a.y + a.height > b.y;    // sjekker om a sitt nedre venstre hjørne er under b sitt øvre venstre hjørne.
-} 
+}
