@@ -8,8 +8,12 @@ function startGame() {
 }
 
 //lyd
-let gameOverSound = new Audio("audio/gameover.mp3");
+let gameOverSound = new Audio("audio/gameOver.mp3");
 let scoreSound = new Audio("audio/poeng.mp3");
+
+let backgroundMusic = new Audio("audio/backgroundMusic.mp3");
+backgroundMusic.loop = true;
+let isMusicPlaying = false;
 
 // SpillBrett
 let board;
@@ -225,6 +229,30 @@ function detectCollision(a, b) {
         a.x + a.width > b.x &&   // sjekker om a sitt øvre høyre hjørne er til høyre for b sitt øvre venstre hjørne
         a.y < b.y + b.height &&  // sjekker om a sitt øvre venstre hjørne er over b sitt nedre venstre hjørne.
         a.y + a.height > b.y;    // sjekker om a sitt nedre venstre hjørne er under b sitt øvre venstre hjørne.
+}
+
+// Bakgrunnsmusikk - toggle button
+
+// Funksjon for å bytte musikkikon og spille av / pause musikken
+function toggleMusic() {
+    let musicIcon = document.getElementById("musicIcon");
+    
+    if (isMusicPlaying) {
+        // Sett pause-ikonet
+        musicIcon.classList.remove("fa-volume-high");
+        musicIcon.classList.add("fa-volume-xmark");
+        // Pause musikken
+        backgroundMusic.pause();
+    } else {
+        // Sett play-ikonet
+        musicIcon.classList.remove("fa-volume-xmark");
+        musicIcon.classList.add("fa-volume-high");
+        // Spill av musikken
+        backgroundMusic.play();
+    }
+
+    // Oppdaterer musikkspillstatusen
+    isMusicPlaying = !isMusicPlaying;
 }
 
 // FØRSØK PÅ Highscore  ----------------------------------------
