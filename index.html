@@ -12,16 +12,23 @@
 
 <body>
     <h1 class="title"> Flappy-bird </h1>
-    <div id="instructions"">
+
+    <div id="instructions">
         <p>Trykk på Space, ArrowUp eller KeyX for å hoppe</p>
         <p>Unngå rørene og få høyest mulig poengsum!</p>
         <p>Trykk på en tast for å starte</p>
     </div>
+
     <canvas id="board"></canvas>
+
     <label for="speedControl">Velg hastighet:</label>
     <input type="range" id="speedControl" min="0.5" max="3.5"  step="0.1">
-    <div id="highscore"></div>
-    
+ 
+      <div id="highscore">
+        <h3>Highscore:</h3>
+        <p id="playerName">Navn:</p>
+    </div>
+
     <button id="musicToggle" onclick="toggleMusic()">
         <i id="musicIcon" class="fa-solid fa-volume-xmark"></i>
     </button>

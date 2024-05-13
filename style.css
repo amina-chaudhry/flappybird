@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Poetsen+One&display=swap');
 
+:root {
+    --primary-color: rgb(28, 154, 193);
+    --secondary-color: rgb(23, 107, 197);
+
+}
+
 body {
     font-family: "Anton", sans-serif;
     font-weight: 200;
@@ -52,6 +58,38 @@ label {
     position: absolute;
     top: 40px; 
     right: 80px;
-    background-color: white);
+    background-color: white;
     font-size: 25px;
 }
+
+#highscore {
+    border: 2px solid #333;
+    padding: 10px;
+    width: 200px;
+    position: absolute;
+    top: 155px;
+    right: 195px;
+  
+  }
+  
+  #highscore h3 {
+    margin-top: 0;
+  }
+  
+  #highscore ol {
+    list-style: none;
+    padding: 0;
+  }
+  
+  #highscore li {
+    margin-bottom: 5px;
+  }
+  
+  .player-name {
+    font-weight: bold;
+  }
+  
+  .score {
+    font-weight: bold;
+    color: var(--); 
+  }

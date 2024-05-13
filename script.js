@@ -205,6 +205,7 @@ function update() {
     if (gameOver) {
         playGameOverSound(); // Spill av gameover-lyden
         context.fillText("GAME OVER", boardWidth / 8, boardHeight / 2);
+        updateHighscore(score); // Oppdater highscore når spillet er over
     }
 }
 
@@ -256,15 +257,21 @@ function toggleMusic() {
 }
 
 // FØRSØK PÅ Highscore  ----------------------------------------
+
+// Def. konstanter for URL og spill-ID
 const URL = "https://rasmusweb.no/hs.php";
-const GameID = "flappybird568"; 
+const GameID = "flappybird1";
+
+//  variabler for highscore og spillernavn
 let highscore = 0;
 let playerName = "";
 
 // Funksjon for å lagre highscore på serveren
 async function saveHighscore(score) {
+    // Spør brukeren om navnet dens
     let playerNameInput = prompt("Gratulerer! Du har satt en highscore!\nSkriv inn navnet ditt:");
 
+    // Validerer brukerinput for navn
     playerName = playerNameInput.trim() !== "" ? playerNameInput : "Anonym";
 
     const data = {
@@ -274,6 +281,7 @@ async function saveHighscore(score) {
     };
 
     try {
+        // Sender data til serveren
         const response = await fetch(URL, {
             method: "POST",
             headers: {
@@ -282,6 +290,7 @@ async function saveHighscore(score) {
             body: JSON.stringify(data),
         });
 
+        // Håndterer responsen fra serveren ----
         if (!response.ok) {
             throw new Error("Det oppsto en feil ved lagring av highscore.");
         }
@@ -289,27 +298,33 @@ async function saveHighscore(score) {
         const responseData = await response.json();
         console.log(responseData);
     } catch (error) {
+        // Håndterer feil under lagring av highscore
         console.error("Feil ved lagring av highscore:", error.message);
+        alert("Det oppsto en feil ved lagring av highscore. Vennligst prøv igjen senere.");
     }
 }
 
 // Funksjon for å oppdatere highscore når spillet er vunnet
 async function updateHighscore(score) {
-    if (!highscore || score > highscore) {
+    // Oppdaterer highscore hvis den er større enn den nåværende highscoren
+    if (score > highscore) {
         await saveHighscore(score);
-        highscore = score; // Oppdaterer den lokale highscore-variabelen
+        highscore = score;
         console.log("Highscore oppdatert til:", highscore);
-        displayHighscore(); // Kaller funksjonen for å vise highscore etter oppdatering
+        displayHighscore();
     }
-    // Nytt kall for å vise highscore umiddelbart ved oppdatering
-    displayHighscore();
 }
 
-// Funksjon for å vise highscore på nettsiden
+// Funksjon for å vise highscore og navn på nettsiden
 function displayHighscore() {
+    // Henter referanser til DOM-elementer én gang
     const highscoreElement = document.getElementById("highscore");
-    if (highscoreElement) {
+    const playerNameElement = document.getElementById("playerName");
+
+    // Oppdaterer DOM-elementene med highscore og spillernavn
+    if (highscoreElement && playerNameElement) {
         highscoreElement.textContent = `Highscore: ${highscore}`;
+        playerNameElement.textContent = `Navn: ${playerName}`;
     }
     console.log("displayHighscore() ble kalt");
 }
