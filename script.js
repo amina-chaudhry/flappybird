@@ -258,7 +258,7 @@ function toggleMusic() {
 
 // FØRSØK PÅ Highscore  ----------------------------------------
 
-// Def. konstanter for URL og spill-ID
+// Def konstanter for URL og spill-ID
 const URL = "https://rasmusweb.no/hs.php";
 const GameID = "flappybird1";
 
@@ -282,20 +282,20 @@ async function saveHighscore(score) {
 
     try {
         // Sender data til serveren
-        const response = await fetch(URL, {
+        const apiCallPromise = await fetch(URL, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                Accept: "application/json",
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify(data), // Endret fra postBody til data
         });
 
-        // Håndterer responsen fra serveren ----
-        if (!response.ok) {
+        // Håndterer responsen fra serveren
+        if (!apiCallPromise.ok) { // Endret fra response til apiCallPromise
             throw new Error("Det oppsto en feil ved lagring av highscore.");
         }
 
-        const responseData = await response.json();
+        const responseData = await apiCallPromise.json(); // Endret fra response til apiCallPromise
         console.log(responseData);
     } catch (error) {
         // Håndterer feil under lagring av highscore
