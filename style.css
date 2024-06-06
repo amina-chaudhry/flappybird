@@ -3,7 +3,8 @@
 :root {
     --primary-color: rgb(28, 154, 193);
     --secondary-color: rgb(23, 107, 197);
-
+    --highscore-board-border-color: rgb(0,0,0);
+    --speedControl-color: rgb(44,5,6);
 }
 
 *{
@@ -31,7 +32,7 @@ body {
 
 #board {
     background-image: url("bilder/game-background.png");
-    border: solid rgb(28, 154, 193) 3px;
+    border: solid var(--primary-color) 3px;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -40,7 +41,7 @@ body {
 }
 
 label {
-   color: rgb(23, 107, 197);
+   color: var(--secondary-color);
 }
 
 #instructions {
@@ -52,15 +53,10 @@ label {
     padding: 20px;
     border-radius: 10px;
     color: white;
-    font-family: Arial, sans-serif;
+    font-family: Calibri, sans-serif;
     font-size: 20px;
     z-index: 2;
     line-height: 1.5;
-}
-
-#highscore {
-    top: 0;
-    margin: 0;
 }
 
 #musicToggle {
@@ -73,14 +69,15 @@ label {
     font-size: 25px;
 }
 
-#highscore {
-    border: 2px solid #333;
-    padding: 10px;
-    width: 200px;
+#highscoreboard {
+    border: 2px solid var(--highscore-board-border-color);
+    border-radius: 10%;
+    background-color:lightgreen;
+    padding: 20px 3px;
+    width: 190px;
     position: absolute;
     top: 155px;
     right: 195px;
-  
   }
   
   #highscore h3 {
@@ -95,40 +92,3 @@ label {
   #highscore li {
     margin-bottom: 5px;
   }
-  
-  .player-name {
-    font-weight: bold;
-  }
-  
-  .score {
-    font-weight: bold;
-    color: var(--); 
-  }
-
-  /* Media Quieries */
-
-@media only screen and (max-width: 1250px) {
-    #highscore {
-    border: 2px solid #333;
-    padding: 10px;
-    width: 200px;
-    position: absolute;
-    top: 95%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-
-}
-
-#board {
-    margin-top: 20px;
-}
-
-#musicToggle {
-    border-radius: 80%;
-    padding: 10px;
-    position: absolute;
-    top: 91%; 
-    right: 10%;
-    background-color: white;
-    font-size: 25px;
-}

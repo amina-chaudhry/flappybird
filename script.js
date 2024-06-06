@@ -1,188 +1,156 @@
-//variabler 
+// Variabler
+
 let gameStarted = false;
-
-// Funksjon for å starte spillet
-function startGame() {
-    gameStarted = true;
-    document.getElementById("instructions").style.display = "none"; //fjerner instruksjonsboks 
-}
-
-//lyd
-let gameOverSound = new Audio("audio/gameOver.mp3");
-let scoreSound = new Audio("audio/poeng.mp3");
-
-let backgroundMusic = new Audio("audio/backgroundMusic.mp3");
-backgroundMusic.loop = true;
-let isMusicPlaying = false;
-
-// SpillBrett
-let board;
-let boardWidth = 360;
-let boardHeight = 640;
-let context;
-
-// Rør
-let pipeArray = [];
-let pipeWidth = 64; // bredde/høyde-forhold = 384/3072 = 1/8
-let pipeHeight = 512;
-let pipeX = boardWidth;
-let pipeGap = 200; // Avstand mellom øvre og nedre rør
-
-// Endre poengtellingen til hele poeng
-let score = 0;
-
-// Spill av poeng-lyden hver gang spilleren scorer
-function playScoreSound() {
-    scoreSound.play();
-    score++; // øk poeng med 1 for hvert passert rørpar
-}
-
-function placePipes() {
-    if (!gameStarted || gameOver) {
-        return;
-    }
-
-    let randomPipeY = Math.random() * (boardHeight - pipeGap); // Tilfeldig plassering for øvre rør
-
-    let topPipe = {
-        img: topPipeImg,
-        x: pipeX,
-        y: randomPipeY - pipeHeight, // Juster for høyden på det øvre røret
-        width: pipeWidth,
-        height: pipeHeight,
-        passed: false
-    }
-    pipeArray.push(topPipe);
-
-    let bottomPipe = {
-        img: bottomPipeImg,
-        x: pipeX,
-        y: randomPipeY + pipeGap, // Juster for gapet
-        width: pipeWidth,
-        height: pipeHeight,
-        passed: false
-    }
-    pipeArray.push(bottomPipe);
-}
-
-// Fugl
-let birdWidth = 44; // bredde/høyde-forhold = 408/228 = 17/12
-let birdHeight = 34;
-let birdX = boardWidth / 8;
-let birdY = boardHeight / 2;
-let birdImg;
-
-let bird = {
-    x: birdX,
-    y: birdY,
-    width: birdWidth,
-    height: birdHeight
-}
-
-let birdWingUpImg = new Image();
-birdWingUpImg.src = "bilder/bird-wing-up.png";
-
-let birdWingDownImg = new Image();
-birdWingDownImg.src = "bilder/bird-wing-down.png";
-
-// Legg til event-lytter for å bytte bilde av fuglens vinger når brukeren trykker på tastene Space, ArrowUp eller KeyX
-document.addEventListener("keydown", function(e) {
-    if (!gameStarted && (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX")) {
-        startGame();
-    } else if (gameStarted && (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX")) {
-        // Bytt bilde av fuglens vinger
-        birdImg.src = "bilder/bird-wing-up.png";
-        // Sett en timeout for å gå tilbake  ned
-        setTimeout(function() {
-            birdImg.src = "bilder/bird-wing-down.png";
-        }, 200); // tidsperiode i millisekunder
-    }
-});
-
-// Rør variabler
-let topPipeImg;
-let bottomPipeImg;
-
-// Fysikk
-let velocityX = -2; // hastighet for rør som beveger seg til venstre
-let velocityY = 0; // hastighet for fuglens hopp
-let gravity = 0.4;
-let jumpVelocity = -6; // Hoppets hastighet
-
 let gameOver = false;
 
-// Spill av gameover-lyden når spillet er over
-function playGameOverSound() {
-    gameOverSound.play();
-}
+//bakgrunnsmusikk
+let isMusicPlaying = false;
 
-// Spill av poeng-lyden hver gang spilleren scorer
-function playScoreSound() {
-    scoreSound.play();
-}
+//hopp
+let velocityX = -2;
+let velocityY = 0;
+let gravity = 0.2;
+let jumpVelocity = -4 ;
+
+//highscore
+let score = 0;
+let highscore = 0;
+let playerName = "";
+
+//rør
+const pipeWidth = 64;
+const pipeHeight = 512;
+const pipeGap = 150;
+const pipeX = 360;
+let pipeArray = [];
+
+// DOM - element
+//highscore api
+const GameID = "flappybird1";
+const URL = "https://rasmusweb.no/hs.php";
+
+// Lyd
+const gameOverSound = new Audio("audio/gameOver.mp3");
+const scoreSound = new Audio("audio/poeng.mp3");
+const backgroundMusic = new Audio("audio/backgroundMusic.mp3");
+backgroundMusic.loop = true;
+
+// Spillbrett
+const board = document.getElementById("board");
+board.width = 360;
+board.height = 640;
+const context = board.getContext("2d");
+
+// Fugl
+const bird = {
+    x: board.width / 8,
+    y: board.height / 2,
+    width: 44,
+    height: 34,
+    img: new Image()
+};
+bird.img.src = "bilder/bird-wing-down.png";
+
+// Rør
+const topPipeImg = new Image();
+topPipeImg.src = "bilder/top-pipe.png";
+const bottomPipeImg = new Image();
+bottomPipeImg.src = "bilder/bottom-pipe.png";
+
+// Event Listeners
+document.addEventListener("keydown", handleKeyDown);
+document.getElementById("musicToggle").addEventListener("click", toggleMusic)
+document.getElementById("speedControl").addEventListener("input", updateSpeed);
 
 window.onload = function () {
-    board = document.getElementById("board");
-    board.height = boardHeight;
-    board.width = boardWidth;
-    context = board.getContext("2d"); // brukes for å tegne på brettet
-
-    // Legg til event-lytter for å lytte etter endringer i hastighetskontrollen
-    let speedControl = document.getElementById("speedControl");
-    speedControl.addEventListener("input", function () {
-        let speed = parseFloat(speedControl.value);
-        velocityX = -2 * speed; // Endre hastigheten basert på kontrollens verdi
-
-    });
-
-    // Teger flappy bird
-    // Laster inn bilder
-    birdImg = new Image();
-    birdImg.src = "bilder/bird-wing-down.png";
-    birdImg.onload = function () {
-        context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
-    }
-
-    topPipeImg = new Image();
-    topPipeImg.src = "bilder/top-pipe.png";
-
-    bottomPipeImg = new Image();
-    bottomPipeImg.src = "bilder/bottom-pipe.png";
-
     requestAnimationFrame(update);
-    setInterval(placePipes, 1500); // hver 1.5 sekund
-    document.addEventListener("keydown", moveBird);
+    setInterval(placePipes, 1500);
+    getHighscore(); // Hent highscore ved innlasting av siden
+};
+
+function handleKeyDown(e) {
+    if (!gameStarted && ["Space", "ArrowUp", "KeyX"].includes(e.code)) {
+        startGame();
+    } else if (gameStarted && ["Space", "ArrowUp", "KeyX"].includes(e.code)) {
+        moveBird();
+        toggleBirdImage();
+    }
+}
+
+function startGame() {
+    gameStarted = true;
+    document.getElementById("instructions").style.display = "none";
+}
+
+function toggleBirdImage() {
+    bird.img.src = "bilder/bird-wing-up.png";
+    setTimeout(() => {
+        bird.img.src = "bilder/bird-wing-down.png";
+    }, 200);
 }
 
 function update() {
     requestAnimationFrame(update);
-    if (!gameStarted || gameOver) {
-        return;
-    }
+    if (!gameStarted || gameOver) return;
+
     context.clearRect(0, 0, board.width, board.height);
 
-    // Fugl
     velocityY += gravity;
-    bird.y = Math.max(bird.y + velocityY, 0); // Påfør tyngdekraft på gjeldende bird.y, begrens bird.y til toppen av brettet
-    context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+    bird.y = Math.max(bird.y + velocityY, 0);
+    context.drawImage(bird.img, bird.x, bird.y, bird.width, bird.height);
 
     if (bird.y > board.height) {
         gameOver = true;
     }
 
-    // Rør
-    for (let i = 0; i < pipeArray.length; i += 2) { // Øvre og nedre rør
+    updatePipes();
+    drawScore();
+
+    if (gameOver) {
+        playGameOverSound();
+        context.font = "45px Anton";
+        context.fillStyle = "darkred";
+
+        // Deretter tegn teksten
+        context.fillText("GAME OVER", board.width / 4, board.height / 2);
+    
+        updateHighscore(score); // Oppdater highscore når spillet er over
+    }
+}
+
+function moveBird() {
+    velocityY = jumpVelocity;
+    if (gameOver) {
+        resetGame();
+    }
+}
+
+function updateSpeed() {
+    let speed = parseFloat(this.value);
+    velocityX = -2 * speed;
+}
+
+function placePipes() {
+    if (!gameStarted || gameOver) return;
+
+    let randomPipeY = Math.random() * (board.height - pipeGap - 300) + 150;
+    pipeArray.push({ img: topPipeImg, x: pipeX, y: randomPipeY - pipeHeight, passed: false });
+    pipeArray.push({ img: bottomPipeImg, x: pipeX, y: randomPipeY + pipeGap, passed: false });
+}
+
+function updatePipes() {
+    for (let i = 0; i < pipeArray.length; i += 2) {
         let topPipe = pipeArray[i];
         let bottomPipe = pipeArray[i + 1];
 
         topPipe.x += velocityX;
         bottomPipe.x += velocityX;
 
-        context.drawImage(topPipe.img, topPipe.x, topPipe.y, topPipe.width, topPipe.height);
-        context.drawImage(bottomPipe.img, bottomPipe.x, bottomPipe.y, bottomPipe.width, bottomPipe.height);
+        context.drawImage(topPipe.img, topPipe.x, topPipe.y, pipeWidth, pipeHeight);
+        context.drawImage(bottomPipe.img, bottomPipe.x, bottomPipe.y, pipeWidth, pipeHeight);
 
-        if (!topPipe.passed && bird.x > topPipe.x + topPipe.width) {
-            score += 1; // endre poengtelling til hele poeng
+        if (!topPipe.passed && bird.x > topPipe.x + pipeWidth) {
+            score++;
             topPipe.passed = true;
             playScoreSound();
         }
@@ -192,139 +160,110 @@ function update() {
         }
     }
 
-    // Fjerner rør når de er passert
-    while (pipeArray.length > 0 && pipeArray[0].x < -pipeWidth) {
-        pipeArray.splice(0, 2); // Fjerner både øvre og nedre rør
-    }
+    pipeArray = pipeArray.filter(pipe => pipe.x + pipeWidth > 0);
+}
 
-    // Poeng
+function detectCollision(bird, pipe) {
+    return bird.x < pipe.x + pipeWidth &&
+        bird.x + bird.width > pipe.x &&
+        bird.y < pipe.y + pipeHeight &&
+        bird.y + bird.height > pipe.y;
+}
+
+function drawScore() {
+    context.font = "45px anton";
     context.fillStyle = "white";
-    context.font = "45px sans-serif";
-    context.fillText(score, 5, 45);
-
-    if (gameOver) {
-        playGameOverSound(); // Spill av gameover-lyden
-        context.fillText("GAME OVER", boardWidth / 8, boardHeight / 2);
-        updateHighscore(score); // Oppdater highscore når spillet er over
-    }
+    context.fillText(score, 12, 50); //plassering av score 
 }
 
-function moveBird(e) {
-    if (gameStarted && (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX")) {
-        // Hopp
-        velocityY = jumpVelocity;
-
-        // Nullstill spillet
-        if (gameOver) {
-            bird.y = birdY;
-            pipeArray = [];
-            score = 0;
-            gameOver = false;
-        }
-    }
+function playGameOverSound() {
+    gameOverSound.play();
 }
 
-// skjekker overlapping
-function detectCollision(a, b) { 
-    return a.x < b.x + b.width &&   // sjekker om a sitt øvre venstre hjørne er til venstre for b sitt øvre høyre hjørne. 
-        a.x + a.width > b.x &&   // sjekker om a sitt øvre høyre hjørne er til høyre for b sitt øvre venstre hjørne
-        a.y < b.y + b.height &&  // sjekker om a sitt øvre venstre hjørne er over b sitt nedre venstre hjørne.
-        a.y + a.height > b.y;    // sjekker om a sitt nedre venstre hjørne er under b sitt øvre venstre hjørne.
+function playScoreSound() {
+    scoreSound.play();
 }
 
-// Bakgrunnsmusikk - toggle button
+function resetGame() {
+    bird.y = board.height / 2;
+    pipeArray = [];
+    score = 0
+    velocityY = 0;
+    gameOver = false;
+}
 
-// Funksjon for å bytte musikkikon og spille av / pause musikken
-function toggleMusic() {
-    let musicIcon = document.getElementById("musicIcon");
-    
-    if (isMusicPlaying) {
-        // Sett pause-ikonet
-        musicIcon.classList.remove("fa-volume-high");
-        musicIcon.classList.add("fa-volume-xmark");
-        // Pause musikken
-        backgroundMusic.pause();
-    } else {
-        // Sett play-ikonet
-        musicIcon.classList.remove("fa-volume-xmark");
-        musicIcon.classList.add("fa-volume-high");
-        // Spill av musikken
-        backgroundMusic.play();
-    }
-
-    // Oppdaterer musikkspillstatusen
+function toggleMusic(event) {
+        if (event.detail == 0) {
+            return
+        } 
+        
     isMusicPlaying = !isMusicPlaying;
-}
-
-// FØRSØK PÅ Highscore  ----------------------------------------
-
-// Def konstanter for URL og spill-ID
-const URL = "https://rasmusweb.no/hs.php";
-const GameID = "flappybird1";
-
-//  variabler for highscore og spillernavn
-let highscore = 0;
-let playerName = "";
-
-// Funksjon for å lagre highscore på serveren
-async function saveHighscore(score) {
-    // Spør brukeren om navnet dens
-    let playerNameInput = prompt("Gratulerer! Du har satt en highscore!\nSkriv inn navnet ditt:");
-
-    // Validerer brukerinput for navn
-    playerName = playerNameInput.trim() !== "" ? playerNameInput : "Anonym";
-
-    const data = {
-        id: GameID,
-        hs: score,
-        player: playerName,
-    };
-
-    try {
-        // Sender data til serveren
-        const apiCallPromise = await fetch(URL, {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-            },
-            body: JSON.stringify(data), // Endret fra postBody til data
-        });
-
-        // Håndterer responsen fra serveren
-        if (!apiCallPromise.ok) { // Endret fra response til apiCallPromise
-            throw new Error("Det oppsto en feil ved lagring av highscore.");
-        }
-
-        const responseData = await apiCallPromise.json(); // Endret fra response til apiCallPromise
-        console.log(responseData);
-    } catch (error) {
-        // Håndterer feil under lagring av highscore
-        console.error("Feil ved lagring av highscore:", error.message);
-        alert("Det oppsto en feil ved lagring av highscore. Vennligst prøv igjen senere.");
+    if (isMusicPlaying) {
+        backgroundMusic.play();
+        document.getElementById("musicIcon").classList.replace("fa-volume-xmark", "fa-volume-high");
+    } else {
+        backgroundMusic.pause();
+        document.getElementById("musicIcon").classList.replace("fa-volume-high", "fa-volume-xmark");
     }
 }
 
-// Funksjon for å oppdatere highscore når spillet er vunnet
-async function updateHighscore(score) {
-    // Oppdaterer highscore hvis den er større enn den nåværende highscoren
-    if (score > highscore) {
-        await saveHighscore(score);
-        highscore = score;
-        console.log("Highscore oppdatert til:", highscore);
+// Highscore funksjoner
+async function getHighscore() {
+    const response = await fetch(`${URL}?id=${GameID}`, {
+        method: "GET",
+        headers: {
+            Accept: "application/json",
+        },
+    });
+
+    const highscoreData = await response.json();
+    if (highscoreData) {
+        highscore = Number(highscoreData.hs);
+        playerName = highscoreData.player;
         displayHighscore();
     }
 }
 
-// Funksjon for å vise highscore og navn på nettsiden
+async function saveHighscore(currentScore) {
+    let playerName = prompt("Gratulerer! Du har satt en highscore!\nSkriv inn navnet ditt:");
+
+    // Setter navn som Anonym dersom spilleren ikke skriver inn navn
+    playerName = playerName.trim() !== "" ? playerName : "Anonym";
+
+    const data = {
+        id: GameID,
+        hs: currentScore,
+        player: playerName,
+    };
+
+    const response = await fetch(URL, {
+        method: "POST",
+        headers: {
+            Accept: "application/json",
+        },
+        body: JSON.stringify(data),
+    });
+
+    const responseData = await response.json();
+    console.log(responseData);
+}
+
+async function updateHighscore(currentScore) {
+    // Hvis det ikke er noen highscore enda, eller hvis spillers poeng er bedre enn den dårligste highscoren
+    if (!highscore || highscore < currentScore) {
+        saveHighscore(currentScore);
+    }
+}
+
 function displayHighscore() {
-    // Henter referanser til DOM-elementer én gang
     const highscoreElement = document.getElementById("highscore");
     const playerNameElement = document.getElementById("playerName");
 
-    // Oppdaterer DOM-elementene med highscore og spillernavn
-    if (highscoreElement && playerNameElement) {
+    if (playerName && !isNaN(highscore)) {
         highscoreElement.textContent = `Highscore: ${highscore}`;
         playerNameElement.textContent = `Navn: ${playerName}`;
+    } else {
+        highscoreElement.textContent = "Highscore:";
+        playerNameElement.textContent = "Navn:";
     }
-    console.log("displayHighscore() ble kalt");
 }
