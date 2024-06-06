@@ -4,6 +4,7 @@
     --primary-color: rgb(28, 154, 193);
     --secondary-color: rgb(23, 107, 197);
     --highscore-board-border-color: rgb(0,0,0);
+    --highscore-board-color: lightblue;
     --speedControl-color: rgb(44,5,6);
 }
 
@@ -72,7 +73,7 @@ label {
 #highscoreboard {
     border: 2px solid var(--highscore-board-border-color);
     border-radius: 10%;
-    background-color:lightgreen;
+    background-color:var(--highscore-board-color);
     padding: 20px 3px;
     width: 190px;
     position: absolute;

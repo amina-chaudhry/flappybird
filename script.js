@@ -32,6 +32,7 @@ const URL = "https://rasmusweb.no/hs.php";
 // Lyd
 const gameOverSound = new Audio("audio/gameOver.mp3");
 const scoreSound = new Audio("audio/poeng.mp3");
+const celebrationSound = new Audio("audio/celebration.mp3");
 const backgroundMusic = new Audio("audio/backgroundMusic.mp3");
 backgroundMusic.loop = true;
 
@@ -109,7 +110,12 @@ function update() {
     if (gameOver) {
         playGameOverSound();
         context.font = "45px Anton";
-        context.fillStyle = "darkred";
+
+        if (score > highscore) {
+            context.fillStyle = "darkgreen"; // Grønn farge for ny highscore
+        } else {
+            context.fillStyle = "darkred"; // Rød farge for vanlig "GAME OVER"
+        }
 
         // Deretter tegn teksten
         context.fillText("GAME OVER", board.width / 4, board.height / 2);
@@ -196,7 +202,7 @@ function toggleMusic(event) {
         if (event.detail == 0) {
             return
         } 
-        
+
     isMusicPlaying = !isMusicPlaying;
     if (isMusicPlaying) {
         backgroundMusic.play();
@@ -252,6 +258,7 @@ async function updateHighscore(currentScore) {
     // Hvis det ikke er noen highscore enda, eller hvis spillers poeng er bedre enn den dårligste highscoren
     if (!highscore || highscore < currentScore) {
         saveHighscore(currentScore);
+        celebrationSound.play();
     }
 }
 
