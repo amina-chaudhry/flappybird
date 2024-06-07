@@ -21,7 +21,7 @@ let playerName = "";
 const pipeWidth = 64;
 const pipeHeight = 512;
 const pipeGap = 150;
-const pipeX = 360;
+const pipeX = 370;
 let pipeArray = [];
 
 // DOM - element
@@ -121,6 +121,7 @@ function update() {
         context.fillText("GAME OVER", board.width / 4, board.height / 2);
     
         updateHighscore(score); // Oppdater highscore når spillet er over
+        getHighscore();
     }
 }
 
