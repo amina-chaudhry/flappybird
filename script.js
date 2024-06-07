@@ -3,9 +3,6 @@
 let gameStarted = false;
 let gameOver = false;
 
-//bakgrunnsmusikk
-let isMusicPlaying = false;
-
 //hopp
 let velocityX = -2;
 let velocityY = 0;
@@ -33,8 +30,6 @@ const URL = "https://rasmusweb.no/hs.php";
 const gameOverSound = new Audio("audio/gameOver.mp3");
 const scoreSound = new Audio("audio/poeng.mp3");
 const celebrationSound = new Audio("audio/celebration.mp3");
-const backgroundMusic = new Audio("audio/backgroundMusic.mp3");
-backgroundMusic.loop = true;
 
 // Spillbrett
 const board = document.getElementById("board");
@@ -60,7 +55,7 @@ bottomPipeImg.src = "bilder/bottom-pipe.png";
 
 // Event Listeners
 document.addEventListener("keydown", handleKeyDown);
-document.getElementById("musicToggle").addEventListener("click", toggleMusic)
+
 document.getElementById("speedControl").addEventListener("input", updateSpeed);
 
 window.onload = function () {
@@ -199,20 +194,6 @@ function resetGame() {
     gameOver = false;
 }
 
-function toggleMusic(event) {
-        if (event.detail == 0) {
-            return
-        } 
-
-    isMusicPlaying = !isMusicPlaying;
-    if (isMusicPlaying) {
-        backgroundMusic.play();
-        document.getElementById("musicIcon").classList.replace("fa-volume-xmark", "fa-volume-high");
-    } else {
-        backgroundMusic.pause();
-        document.getElementById("musicIcon").classList.replace("fa-volume-high", "fa-volume-xmark");
-    }
-}
 
 // Highscore funksjoner
 async function getHighscore() {
